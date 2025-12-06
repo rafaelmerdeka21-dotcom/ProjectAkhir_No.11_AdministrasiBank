@@ -78,7 +78,7 @@ def hapus_pengguna(bank, no_rekening):
 
 def buat_akun(bank, no_rekening_pengguna, saldo_awal=0.0):
     """Membuat akun bank yang terhubung ke pengguna"""
-    no_akun = dapatkan_id_berikutnya(bank)
+    no_akun = no_rekening_pengguna
     akun = {
         'no_rekening': no_akun,
         'no_rekening_pengguna': no_rekening_pengguna,
@@ -221,7 +221,7 @@ def tambah_nasabah(bank):
     """Fungsi Tambah Nasabah (Diperbarui dengan Validasi Email Unik)"""
     print("\n--- TAMBAH NASABAH BARU ---")
     while True:
-        email = input("Masukkan Email (Unik): ")
+        email = input("Masukkan Email: ")
         is_registered = any(p['email'] == email for p in bank['pengguna'].values())
 
         if is_registered:
@@ -334,7 +334,7 @@ def menu_admin(bank, pengguna_admin):
             if pengguna and pengguna['peran'] == 'nasabah':
                 pin_baru = generate_pin_acak()
                 perbarui_pengguna(bank, no_rekening_pengguna, pin=pin_baru, wajib_ganti_password=True)
-                print(f"✅ PIN reset. PIN sementara: **{pin_baru}**. Nasabah harus mengganti PIN saat login")
+                print(f"✅ PIN reset. PIN sementara: *{pin_baru}*. Nasabah harus mengganti PIN saat login")
             else:
                 print("❌ Nasabah tidak ditemukan")
                 
@@ -357,7 +357,7 @@ def menu_admin(bank, pengguna_admin):
                     akun = baca_akun(bank, t['no_rekening'])
                     pengguna_t = baca_pengguna(bank, akun['no_rekening_pengguna']) if akun else None
                     nama = pengguna_t['nama'] if pengguna_t else "Tidak ditemukan"
-                    print(f"ID: {tid} | Nama: {nama} | Jenis: {t['jenis']} | Jumlah: Rp{t['jumlah']:,.0f} | Tanggal: {t['tanggal']}")
+                    print(f"No Rekening: {t['no_rekening']} | Nama: {nama} | Jenis: {t['jenis']} | Jumlah: Rp{t['jumlah']:,.0f} | Tanggal: {t['tanggal']}")
                     
         elif pilihan == '8':
             break
@@ -564,15 +564,20 @@ def utama():
             menu_admin(bank, dummy_admin)
             
         elif pilihan == '2':
+            nasabah_list = [u for u in bank['pengguna'].values() if u['peran'] == 'nasabah']
+            if not nasabah_list:
+                print("Belum ada nasabah terdaftar. Silakan buat akun melalui menu Admin terlebih dahulu.")
+                continue
+
             print("\n--- LOGIN NASABAH ---")
             nama_atau_email = input("Nama atau Email Nasabah: ")
             kata_sandi = input("PIN/Password Nasabah: ")
-            
+
             pengguna = autentikasi_pengguna(bank, nama_atau_email, kata_sandi)
 
             if pengguna and pengguna['peran'] == 'nasabah':
                 if pengguna.get('wajib_ganti_password'):
-                    print("\n⚠️ PIN/Password sementara terdeteksi. Anda harus mengganti PIN")
+                    print("\n⚠ PIN/Password sementara terdeteksi. Anda harus mengganti PIN")
                     pin_baru = input("Masukkan PIN baru (6 digit): ")
                     konfirmasi = input("Konfirmasi PIN baru: ")
                     
